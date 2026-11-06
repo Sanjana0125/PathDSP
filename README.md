@@ -3,13 +3,22 @@
 A full-stack precision oncology web application combining deep learning drug sensitivity predictions, Monte Carlo uncertainty estimation, SHAP pathway explainability, and interactive exploration of the GDSC pharmacogenomics dataset.
 
 ---
+## ⚠️ IMPORTANT: Missing Data Files
+Because GitHub has a strict file size limit, the massive datasets and PyTorch model weights are **NOT** included in this repository. To run this app locally, you must download them and place them in the correct folders before starting the servers:
+
+1. **`input.txt`** (The 593MB GDSC Dataset) → Place in the root folder.
+2. **`metadata.csv`** (Cell line tissue types) → Place in the `server/` folder.
+3. **`PathDSP_run.FNN.cv_10best_model.pt`** (Trained Model) → Place in the `model_service/` folder.
+4. **`shap_background.pt`** → Place in the `model_service/` folder.
+
+---
 
 ## Architecture Overview
 
 ```
                       ┌────────────────────────┐
                       │    React 19 Frontend   │ (Port 3000)
-                      │    Futuristic 3D UI    │
+                      │  Interactive Dashboard │
                       └───────────┬────────────┘
                                   │ REST
                                   ▼
