@@ -1,0 +1,30 @@
+# Node dependencies
+node_modules/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment variables
+.env
+.env.*
+
+# Build files
+build/
+dist/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Massive Data Files
+input.txt
+metadata.csv
+model_service/PathDSP_run.FNN.cv_10best_model.pt
+model_service/shap_background.pt
