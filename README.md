@@ -41,7 +41,7 @@ Because GitHub has a strict file size limit, the massive datasets and PyTorch mo
 ### 1. Start the Python Model Service (Port 8000)
 ```powershell
 cd model_service
-uvicorn main:app --port 8000
+python main.py
 ```
 *Loads the trained 1,031-feature PyTorch FNN and `shap.DeepExplainer` with precomputed background tensor.*
 
