@@ -1,10 +1,10 @@
 import React from 'react';
-import { logToMicro, zoneOf } from '../utils/api';
+import { zoneOf } from '../utils/api';
 
 export default function CommandCenterView({ history, stats, onNavigate, onClearHistory, onSelectPrediction }) {
   const userRuns = history.filter(r => !r.demo);
 
-  const lastIC50 = userRuns[0] ? logToMicro(userRuns[0].mean) : '—';
+  const lastIC50 = userRuns[0] ? userRuns[0].mean.toFixed(3) : '—';
   const totalDrugs = new Set(userRuns.map(r => r.drug)).size;
   const totalCells = new Set(userRuns.map(r => r.cell)).size;
 
@@ -31,7 +31,7 @@ export default function CommandCenterView({ history, stats, onNavigate, onClearH
           <div className="metric"><small>Your predictions</small><strong>{userRuns.length}</strong></div>
           <div className="metric"><small>Drugs in dataset</small><strong>{stats ? stats.drugs?.toLocaleString() : '…'}</strong></div>
           <div className="metric"><small>Cell lines</small><strong>{stats ? stats.cells?.toLocaleString() : '…'}</strong></div>
-          <div className="metric"><small>Last IC50 (µM)</small><strong>{lastIC50}</strong></div>
+          <div className="metric"><small>Last log-IC50</small><strong>{lastIC50}</strong></div>
         </div>
 
         {/* quick actions */}
@@ -40,7 +40,6 @@ export default function CommandCenterView({ history, stats, onNavigate, onClearH
           <div className="qa">
             <button className="btn"      onClick={() => onNavigate('prediction')}>New prediction</button>
             <button className="btn alt"  onClick={() => onNavigate('ranking')}>Rank drugs</button>
-            <button className="btn alt"  onClick={() => onNavigate('explain')}>Open SHAP</button>
             <button className="btn alt"  onClick={() => onNavigate('compare')}>Compare drugs</button>
             <button className="btn alt"  onClick={() => onNavigate('explorer')}>Explorer</button>
           </div>

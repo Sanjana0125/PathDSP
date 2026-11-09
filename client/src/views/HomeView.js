@@ -4,9 +4,8 @@ export default function HomeView({ onNavigate }) {
   const cards = [
     { icon: '◎', title: 'Command Center',           desc: 'System status, quick actions and your recent predictions.',   page: 'command' },
     { icon: '💊', title: 'Drug Sensitivity',         desc: 'Pick a cell line and drug, then read the IC50 gauge.',        page: 'prediction' },
-    { icon: '🏆', title: 'Drug Ranking',             desc: 'Rank every drug by predicted IC50 for a selected cell line.', page: 'ranking' },
+    { icon: '🏆', title: 'Drug & Cell Ranking',      desc: 'Rank drugs for a cell line, or rank cell lines for a drug by predicted IC50.', page: 'ranking' },
     { icon: '🕸️', title: 'Pathway Enrichment',      desc: 'Explore cancer-related pathway activity and feature scores.', page: 'pathways' },
-    { icon: '✧',  title: 'SHAP Explainability',      desc: 'See which genes and pathways push the prediction up or down.',page: 'explain' },
     { icon: '⚖️', title: 'Drug & Cell Comparison',   desc: 'Compare drugs side-by-side on a cell line or cell lines on a drug.', page: 'compare' },
     { icon: '🔭', title: 'Prediction Explorer',      desc: 'Browse and filter the full dataset of 37,000+ pairs.',       page: 'explorer' },
     { icon: '📊', title: 'Results Dashboard',        desc: 'Metrics, response profile and recent prediction history.',   page: 'results' },

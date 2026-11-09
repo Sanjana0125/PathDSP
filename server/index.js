@@ -13,6 +13,7 @@ const drugs          = new Set();
 const cells          = new Set();
 let   featureNames   = [];
 const drugResponses  = new Map();   // drug -> { q25, q75, all: sorted [] }
+const drugStats      = new Map();   // drug -> { mean, std }
 const actualResponses = new Map();  // "drug||cell" -> actual log-IC50
 const tissueMap      = new Map();   // SIDM... -> tissue name
 const cancerTypeMap  = new Map();   // SIDM... -> cancer_type
@@ -58,11 +59,18 @@ async function loadData() {
     drugResponses.get(drug).push(resp);
   }
 
-  // Compute per-drug Q25 / Q75 for sensitivity labelling
+  // Compute per-drug Q25 / Q75 for sensitivity labelling and mean / std for Z-score calculation
   drugResponses.forEach((arr, drug) => {
     arr.sort((a, b) => a - b);
     const q25 = arr[Math.floor(arr.length * 0.25)];
     const q75 = arr[Math.floor(arr.length * 0.75)];
+
+    const n = arr.length;
+    const mean = arr.reduce((sum, v) => sum + v, 0) / (n || 1);
+    const variance = arr.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (n > 1 ? n - 1 : 1);
+    const std = Math.sqrt(variance) || 1e-6;
+
+    drugStats.set(drug, { mean, std });
     drugResponses.set(drug, { q25, q75, all: arr });
   });
 
@@ -264,17 +272,32 @@ app.get('/api/rank/:cell', async (req, res) => {
 
     let results = pairs.map((p, i) => {
       const drug = p.split('||')[0];
+      const ic50 = predictions[i];
+      const stats = drugStats.get(drug) || { mean: 0, std: 1 };
+      const z_score = stats.std > 0 ? (ic50 - stats.mean) / stats.std : 0;
+
+      let label = 'Intermediate';
+      if (z_score <= -1) {
+        label = 'Sensitive';
+      } else if (z_score >= 1) {
+        label = 'Resistant';
+      }
+
       return {
         drug,
-        ic50:              predictions[i],
+        ic50,
+        z_score,
+        drug_mean:         stats.mean,
+        drug_std:          stats.std,
         actual_ic50:       actualResponses.get(p) ?? null,
-        sensitivity_label: getSensitivityLabel(drug, predictions[i]),
-        thresholds:        drugResponses.get(drug),
+        sensitivity_label: label,
       };
     });
 
-    results.sort((a, b) => direction === 'resistant' ? b.ic50 - a.ic50 : a.ic50 - b.ic50);
-    res.json(results.slice(0, limit));
+    results.sort((a, b) => direction === 'resistant' ? b.z_score - a.z_score : a.z_score - b.z_score);
+
+    const topResults = results.slice(0, limit);
+    res.json(topResults);
   } catch (err) {
     res.status(503).json({ error: 'Python model service is not running.' });
   }
@@ -293,18 +316,33 @@ app.get('/api/rank-cells/:drug', async (req, res) => {
     const featuresList = pairs.map(p => pairMap.get(p));
     const { predictions } = await callPython('/predict_batch', { features_list: featuresList });
 
+    const t = drugResponses.get(drug);
+    const sortedPreds = [...predictions].sort((a, b) => a - b);
+    const q25 = t?.q25 ?? sortedPreds[Math.floor(sortedPreds.length * 0.25)];
+    const q75 = t?.q75 ?? sortedPreds[Math.floor(sortedPreds.length * 0.75)];
+
     let results = pairs.map((p, i) => {
       const cell = p.split('||')[1];
+      const ic50 = predictions[i];
+      let label = 'Intermediate';
+      if (ic50 <= q25) label = 'Sensitive';
+      else if (ic50 >= q75) label = 'Resistant';
+
       return {
         cell,
-        ic50:        predictions[i],
+        ic50,
         actual_ic50: actualResponses.get(p) ?? null,
+        sensitivity_label: label,
+        thresholds: { q25, q75 },
         ...cellMeta(cell),
       };
     });
 
     results.sort((a, b) => direction === 'resistant' ? b.ic50 - a.ic50 : a.ic50 - b.ic50);
-    res.json(results.slice(0, limit));
+
+    const topResults = results.slice(0, limit);
+
+    res.json(topResults);
   } catch (err) {
     res.status(503).json({ error: 'Python model service is not running.' });
   }

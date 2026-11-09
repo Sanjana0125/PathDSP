@@ -6,7 +6,6 @@ import CommandCenterView  from './views/CommandCenterView';
 import PredictionView     from './views/PredictionView';
 import RankingView        from './views/RankingView';
 import PathwaysView       from './views/PathwaysView';
-import ShapView           from './views/ShapView';
 import CompareView        from './views/CompareView';
 import ExplorerView       from './views/ExplorerView';
 import ResultsView        from './views/ResultsView';
@@ -16,10 +15,9 @@ import { api, loadHistory, appendHistory, clearHistory } from './utils/api';
 const NAV_ITEMS = [
   { icon: '⌂',   label: 'Home',              page: 'home'         },
   { icon: '◎',   label: 'Command Center',     page: 'command'      },
-  { icon: '💊',  label: 'Drug Sensitivity',   page: 'prediction'   },
-  { icon: '🏆',  label: 'Drug Ranking',       page: 'ranking'      },
-  { icon: '🕸',  label: 'Pathway Enrichment', page: 'pathways'     },
-  { icon: '✧',   label: 'SHAP Explainability',      page: 'explain'    },
+  { icon: '💊',  label: 'Drug Sensitivity',          page: 'prediction' },
+  { icon: '🏆',  label: 'Drug & Cell Ranking',       page: 'ranking'    },
+  { icon: '🕸',  label: 'Pathway Enrichment',        page: 'pathways'   },
   { icon: '⚖️',  label: 'Drug and Cell Comparison',  page: 'compare'    },
   { icon: '🔭',  label: 'Prediction Explorer',       page: 'explorer'   },
   { icon: '▥',   label: 'Results',            page: 'results'      },
@@ -88,7 +86,6 @@ export default function App() {
       case 'prediction':    return <PredictionView drugs={drugs} cells={cells} history={history} setHistory={setHistory} initialSelection={activeSelection} />;
       case 'ranking':       return <RankingView drugs={drugs} cells={cells} onSelectPrediction={handleSelectPrediction} />;
       case 'pathways':      return <PathwaysView />;
-      case 'explain':       return <ShapView drugs={drugs} cells={cells} initialSelection={activeSelection} />;
       case 'compare':
       case 'compare-cells': return <CompareView drugs={drugs} cells={cells} initialMode={page === 'compare-cells' ? 'cells' : 'drugs'} />;
       case 'explorer':      return <ExplorerView drugs={drugs} cells={cells} onSelectPrediction={handleSelectPrediction} />;

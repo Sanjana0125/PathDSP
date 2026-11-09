@@ -1,5 +1,5 @@
 import React from 'react';
-import { logToMicro, zoneOf, downloadCSV, clearHistory } from '../utils/api';
+import { zoneOf, downloadCSV, clearHistory } from '../utils/api';
 
 export default function ResultsView({ history, setHistory, onNavigate, onSelectPrediction }) {
   const userRuns = history.filter(r => !r.demo);
@@ -15,10 +15,10 @@ export default function ResultsView({ history, setHistory, onNavigate, onSelectP
     if (!userRuns.length) return;
     downloadCSV(
       'PathDSP_History.csv',
-      ['Timestamp', 'Drug', 'Cell', 'Tissue', 'Predicted log-IC50', 'IC50 (µM)', '95% CI', 'Sensitivity', 'Confidence'],
+      ['Timestamp', 'Drug', 'Cell', 'Tissue', 'Predicted log-IC50', '95% CI', 'Sensitivity', 'Confidence'],
       userRuns.map(r => [
         new Date(r.timestamp).toISOString(), r.drug, r.cell, r.meta?.tissue ?? '',
-        r.mean?.toFixed(4), logToMicro(r.mean),
+        r.mean?.toFixed(4),
         `[${r.lower_ci?.toFixed(2)},${r.upper_ci?.toFixed(2)}]`,
         r.sensitivity_label, r.confidence_label,
       ]),
@@ -59,16 +59,16 @@ export default function ResultsView({ history, setHistory, onNavigate, onSelectP
             <div className="metric">
               <small>Most sensitive run</small>
               <strong style={{ fontSize: 14, color: 'var(--green)' }}>{topSens?.drug}</strong>
-              <small style={{ color: 'var(--muted)' }}>{topSens?.cell} · {logToMicro(topSens?.mean)} µM</small>
+              <small style={{ color: 'var(--muted)' }}>{topSens?.cell} · {topSens?.mean?.toFixed(3)} log-IC50</small>
             </div>
             <div className="metric">
               <small>Most resistant run</small>
               <strong style={{ fontSize: 14, color: 'var(--red)' }}>{topRes?.drug}</strong>
-              <small style={{ color: 'var(--muted)' }}>{topRes?.cell} · {logToMicro(topRes?.mean)} µM</small>
+              <small style={{ color: 'var(--muted)' }}>{topRes?.cell} · {topRes?.mean?.toFixed(3)} log-IC50</small>
             </div>
             <div className="metric">
-              <small>Last IC50 (µM)</small>
-              <strong style={{ color: 'var(--cyan)' }}>{lastRun ? logToMicro(lastRun.mean) : '—'}</strong>
+              <small>Last log-IC50</small>
+              <strong style={{ color: 'var(--cyan)' }}>{lastRun ? lastRun.mean.toFixed(3) : '—'}</strong>
             </div>
             <div className="metric">
               <small>Last sensitivity</small>
@@ -96,7 +96,7 @@ export default function ResultsView({ history, setHistory, onNavigate, onSelectP
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                 <thead>
                   <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--muted)', fontSize: 10 }}>
-                    {['Time', 'Drug', 'Cell Line', 'Tissue', 'log-IC50', 'IC50 (µM)', '95% CI', 'Sensitivity', 'Confidence'].map(h => (
+                    {['Time', 'Drug', 'Cell Line', 'Tissue', 'Predicted log-IC50', '95% CI', 'Sensitivity', 'Confidence'].map(h => (
                       <th key={h} style={{ textAlign: 'left', padding: '8px 6px', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
@@ -117,8 +117,7 @@ export default function ResultsView({ history, setHistory, onNavigate, onSelectP
                         <td style={{ padding: '8px 6px', fontWeight: 700 }}>{r.drug}</td>
                         <td style={{ padding: '8px 6px', color: 'var(--muted)' }}>{r.cell}</td>
                         <td style={{ padding: '8px 6px', fontSize: 11 }}>{r.meta?.tissue ?? '—'}</td>
-                        <td style={{ padding: '8px 6px', fontVariantNumeric: 'tabular-nums' }}>{r.mean?.toFixed(3) ?? '—'}</td>
-                        <td style={{ padding: '8px 6px', color: 'var(--cyan)', fontVariantNumeric: 'tabular-nums' }}>{logToMicro(r.mean)}</td>
+                        <td style={{ padding: '8px 6px', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>{r.mean?.toFixed(3) ?? '—'}</td>
                         <td style={{ padding: '8px 6px', color: 'var(--muted)', fontSize: 10 }}>
                           [{r.lower_ci?.toFixed(2)}, {r.upper_ci?.toFixed(2)}]
                         </td>

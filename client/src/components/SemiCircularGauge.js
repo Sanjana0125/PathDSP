@@ -54,8 +54,6 @@ export default function SemiCircularGauge({ value, thresholds, label, loading })
     label === 'Resistant'    ? 'var(--red)'    :
     label === 'Intermediate' ? 'var(--yellow)' : 'var(--muted)';
 
-  const ic50uM = value != null ? Math.pow(10, value) : null;
-
   return (
     <div className="gauge-wrap">
       <svg viewBox="0 0 280 165" className="gauge-svg">
@@ -114,11 +112,11 @@ export default function SemiCircularGauge({ value, thresholds, label, loading })
           <span className="shimmer" style={{ width: 140, height: 44, display: 'inline-block', borderRadius: 10 }} />
         ) : value != null ? (
           <>
-            <strong style={{ fontSize: '42px', fontWeight: '800', color: labelColor, display: 'block', lineHeight: 1.1 }}>
-              {ic50uM < 10 ? ic50uM.toFixed(3) : ic50uM.toFixed(1)} <span style={{ fontSize: '24px', fontWeight: '600' }}>µM</span>
+            <strong style={{ fontSize: '46px', fontWeight: '800', color: labelColor, display: 'block', lineHeight: 1.1 }}>
+              {value.toFixed(3)}
             </strong>
-            <small style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '6px', display: 'block', fontWeight: '500' }}>
-              Predicted log-IC50: <b style={{ color: 'var(--text)' }}>{value.toFixed(3)}</b>
+            <small style={{ fontSize: '13px', color: 'var(--muted)', marginTop: '6px', display: 'block', fontWeight: '600', letterSpacing: '0.04em' }}>
+              PREDICTED LOG-IC50
             </small>
           </>
         ) : (

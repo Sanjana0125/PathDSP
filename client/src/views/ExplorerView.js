@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Select from '../components/OptimizedSelect';
-import { api, downloadCSV, logToMicro } from '../utils/api';
+import { api, downloadCSV } from '../utils/api';
 
 export default function ExplorerView({ drugs: initialDrugs, cells: initialCells, onSelectPrediction }) {
   const [drugList, setDrugList] = useState(initialDrugs || []);
@@ -139,14 +139,13 @@ export default function ExplorerView({ drugs: initialDrugs, cells: initialCells,
     if (!data) return;
     downloadCSV(
       'PathDSP_Explorer.csv',
-      ['Drug', 'Cell Line', 'Tissue', 'Cancer Type', 'Actual log-IC50', 'IC50 (µM)'],
+      ['Drug', 'Cell Line', 'Tissue', 'Cancer Type', 'Actual log-IC50'],
       data.results.map(r => [
         r.drug,
         r.cell,
         r.tissue,
         r.cancer_type,
         r.actual_ic50 != null ? r.actual_ic50.toFixed(4) : 'N/A',
-        r.actual_ic50 != null ? logToMicro(r.actual_ic50) : 'N/A',
       ]),
     );
   };
@@ -250,7 +249,7 @@ export default function ExplorerView({ drugs: initialDrugs, cells: initialCells,
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid var(--line)', color: 'var(--muted)', fontSize: 10, letterSpacing: '0.08em' }}>
-                      {['Drug', 'Cell Line', 'Tissue', 'Cancer Type', 'Actual log-IC50', 'IC50 (µM)', 'Action'].map(h => (
+                      {['Drug', 'Cell Line', 'Tissue', 'Cancer Type', 'Actual log-IC50', 'Action'].map(h => (
                         <th key={h} style={{ textAlign: 'left', padding: '8px 6px', whiteSpace: 'nowrap' }}>{h}</th>
                       ))}
                     </tr>
@@ -268,11 +267,8 @@ export default function ExplorerView({ drugs: initialDrugs, cells: initialCells,
                         <td style={{ padding: '8px 6px', color: 'var(--muted)' }}>{r.cell}</td>
                         <td style={{ padding: '8px 6px' }}>{r.tissue}</td>
                         <td style={{ padding: '8px 6px', color: 'var(--muted)', fontSize: 11 }}>{r.cancer_type || '—'}</td>
-                        <td style={{ padding: '8px 6px', fontVariantNumeric: 'tabular-nums' }}>
+                        <td style={{ padding: '8px 6px', fontVariantNumeric: 'tabular-nums', fontWeight: 600 }}>
                           {r.actual_ic50 != null ? r.actual_ic50.toFixed(3) : '—'}
-                        </td>
-                        <td style={{ padding: '8px 6px', color: 'var(--cyan)', fontVariantNumeric: 'tabular-nums' }}>
-                          {r.actual_ic50 != null ? logToMicro(r.actual_ic50) : '—'}
                         </td>
                         <td style={{ padding: '8px 6px' }}>
                           <button

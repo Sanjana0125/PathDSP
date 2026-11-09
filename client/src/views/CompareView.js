@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Select from '../components/OptimizedSelect';
-import { api, logToMicro, downloadCSV } from '../utils/api';
+import { api, downloadCSV } from '../utils/api';
 
 export default function CompareView({ drugs: initialDrugs, cells: initialCells, initialMode = 'drugs' }) {
   const [mode,              setMode]              = useState(initialMode);  // 'drugs' | 'cells'
@@ -218,11 +218,10 @@ export default function CompareView({ drugs: initialDrugs, cells: initialCells, 
     if (mode === 'drugs') {
       downloadCSV(
         `Compare_Drugs_${selCell?.value}.csv`,
-        ['Drug', 'Predicted log-IC50', 'IC50 (µM)', '95% CI', 'Actual log-IC50', 'Sensitivity', 'Confidence'],
+        ['Drug', 'Predicted log-IC50', '95% CI', 'Actual log-IC50', 'Sensitivity', 'Confidence'],
         results.map(r => [
           r.drug,
           r.mean?.toFixed(4),
-          logToMicro(r.mean),
           `[${r.lower_ci?.toFixed(2)},${r.upper_ci?.toFixed(2)}]`,
           r.actual_ic50?.toFixed(4) ?? 'N/A',
           r.sensitivity_label,
@@ -232,12 +231,11 @@ export default function CompareView({ drugs: initialDrugs, cells: initialCells, 
     } else {
       downloadCSV(
         `Compare_Cells_${selDrug?.value}.csv`,
-        ['Cell', 'Tissue', 'Predicted log-IC50', 'IC50 (µM)', '95% CI', 'Actual log-IC50', 'Confidence'],
+        ['Cell', 'Tissue', 'Predicted log-IC50', '95% CI', 'Actual log-IC50', 'Confidence'],
         results.map(r => [
           r.cell,
           r.tissue,
           r.mean?.toFixed(4),
-          logToMicro(r.mean),
           `[${r.lower_ci?.toFixed(2)},${r.upper_ci?.toFixed(2)}]`,
           r.actual_ic50?.toFixed(4) ?? 'N/A',
           r.confidence_label,

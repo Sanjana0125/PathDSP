@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Select from '../components/OptimizedSelect';
-import { api, logToMicro, appendHistory } from '../utils/api';
+import { api, appendHistory } from '../utils/api';
 import SemiCircularGauge from '../components/SemiCircularGauge';
 import ShapChart from '../components/ShapChart';
 import html2pdf from 'html2pdf.js';
@@ -9,6 +9,7 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
   const [selDrug, setSelDrug] = useState(null);
   const [selCell, setSelCell] = useState(null);
   const [validDrugs, setValidDrugs] = useState(null);
+  const [validCells, setValidCells] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
@@ -31,24 +32,35 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
     }
   }, [initialSelection, cells]);
 
+  // When cell is selected, filter available drugs if no drug is selected yet
   useEffect(() => {
-    if (selCell?.value) {
+    if (selCell?.value && !selDrug) {
       api.getDrugsForCell(selCell.value)
-        .then(list => {
-          setValidDrugs(list);
-          if (selDrug && !list.includes(selDrug.value)) {
-            setSelDrug(null);
-          }
-        })
+        .then(list => setValidDrugs(list))
         .catch(() => setValidDrugs(null));
-    } else {
+    } else if (!selCell) {
       setValidDrugs(null);
     }
-  }, [selCell]);
+  }, [selCell, selDrug]);
+
+  // When drug is selected, filter available cell lines if no cell is selected yet
+  useEffect(() => {
+    if (selDrug?.value && !selCell) {
+      api.getCellsForDrug(selDrug.value)
+        .then(list => setValidCells(list))
+        .catch(() => setValidCells(null));
+    } else if (!selDrug) {
+      setValidCells(null);
+    }
+  }, [selDrug, selCell]);
 
   const activeDrugs = validDrugs && validDrugs.length > 0 ? validDrugs : drugs;
   const drugOptions = activeDrugs.map(d => ({ value: d, label: d }));
-  const cellOptions = cells.map(c => ({
+
+  const activeCells = validCells && validCells.length > 0
+    ? cells.filter(c => validCells.includes(c.id))
+    : cells;
+  const cellOptions = activeCells.map(c => ({
     value: c.id,
     label: `${c.id} — ${c.model_name !== c.id ? c.model_name + ' · ' : ''}${c.tissue}`,
   }));
@@ -131,14 +143,14 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
           <h3>Analysis inputs</h3>
           <div className="fields">
             <div className="field">
-              <label>Cancer cell line</label>
-              <Select options={cellOptions} value={selCell} onChange={setSelCell}
-                placeholder="Search cell line…" isClearable styles={selectStyles} />
-            </div>
-            <div className="field">
               <label>Drug / compound</label>
               <Select options={drugOptions} value={selDrug} onChange={setSelDrug}
                 placeholder="Search drug…" isClearable styles={selectStyles} />
+            </div>
+            <div className="field">
+              <label>Cancer cell line</label>
+              <Select options={cellOptions} value={selCell} onChange={setSelCell}
+                placeholder="Search cell line…" isClearable styles={selectStyles} />
             </div>
           </div>
           {error && (
@@ -182,8 +194,10 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
                 <strong>{result.mean.toFixed(3)}</strong>
               </div>
               <div className="metric">
-                <small>Approx. IC50 (µM)</small>
-                <strong>{logToMicro(result.mean)}</strong>
+                <small>Actual log-IC50 (GDSC)</small>
+                <strong style={{ color: 'var(--cyan)' }}>
+                  {result.actual_ic50 != null ? result.actual_ic50.toFixed(3) : 'N/A'}
+                </strong>
               </div>
               <div className="metric">
                 <small>AI Confidence</small>
@@ -215,9 +229,9 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
                 <strong>{result.std?.toFixed(3)}</strong>
               </div>
               <div className="metric">
-                <small>Actual (GDSC)</small>
-                <strong style={{ color: 'var(--cyan)' }}>
-                  {result.actual_ic50 != null ? result.actual_ic50.toFixed(3) : 'N/A'}
+                <small>Prediction Error</small>
+                <strong>
+                  {result.actual_ic50 != null ? `${Math.abs(result.mean - result.actual_ic50).toFixed(3)} log` : 'N/A'}
                 </strong>
               </div>
             </div>
@@ -284,7 +298,6 @@ export default function PredictionView({ drugs, cells, history, setHistory, init
             <tbody>
               {[
                 ['Predicted log-IC50', result.mean.toFixed(4)],
-                ['Approx. IC50 (µM)', logToMicro(result.mean)],
                 ['Sensitivity Status', result.sensitivity_label],
                 ['AI Confidence', `${result.confidence_label?.toUpperCase()} (σ = ${result.std?.toFixed(3)})`],
                 ['95% Confidence Interval', `[${result.lower_ci?.toFixed(3)}, ${result.upper_ci?.toFixed(3)}]`],
